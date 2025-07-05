@@ -1,0 +1,26 @@
+[package]
+name = "website"
+version = "0.1.0"
+edition = "2021"
+authors = ["alexb"]
+
+[toolchain]
+channel = "1.74.0"
+targets = ["wasm32-unknown-unknown"]
+
+[dependencies]
+leptos = { version = "0.8.2", features = ["csr"] }
+leptos_meta = "0.8.2"
+leptos_router = "0.8.2"
+console_error_panic_hook = "0.1.7"
+console_log = "1.0.0"
+log = "0.4.27"
+serde = "1.0.219"
+serde_json = "1.0.140"
+wasm-bindgen-futures = "0.4.50"
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -1,0 +1,2 @@
+port = 8001
+rust_log = "debug"

@@ -1,0 +1,164 @@
+/* --------------------- Open Props --------------------------- */
+
+/* the props */
+@import "https://unpkg.com/open-props";
+
+/* optional imports that use the props */
+@import "https://unpkg.com/open-props/normalize.min.css";
+//@import "https://unpkg.com/open-props/buttons.min.css";
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100;900&display=swap');
+
+
+/* ------------------------------------------------------------ */
+// style.scss
+
+:root {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --button-bg: #eeeeee;
+  --dialog-bg: #ffffff;
+  --discord-color: #6975f8;
+  --discord-dark-color: #424cbe;
+  --dark-color: #23272a;
+  --light-color: #ffffff;
+  --radius: 0.4rem;
+  --white-color: #ffffff;
+  --black-color: #000000;
+
+  &[data-theme="dark"] {
+    --background-color: #16181a;
+    --text-color: #ffffff;
+    --button-bg: #16181a;
+    --dialog-bg: #1a1a1a;
+    --discord-color: #6975f8;
+    --discord-dark-color: #424cbe;
+    --dark-color: #ffffff;
+    --light-color: #333333;
+    --radius: 0.4rem;
+    --white-color: #ffffff;
+    --black-color: #000000;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html {
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Noto Sans', sans-serif;
+  }
+
+  @for $i from 1 through 6 {
+    h#{$i} {
+      font-weight: 900;
+      font-size: #{4-($i*0.6)}rem;
+    }
+  }
+
+  button {
+    color: var(--text-color);
+    background-color: var(--button-bg);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    border: 0.22rem solid var(--dark-color);
+
+    &:hover {
+      background-color: var(--dark-color);
+      color: var(--light-color);
+      box-shadow: 0 0 0 2px var(--dark-color);
+    }
+
+    &:active {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--discord-color);
+    }
+  }
+
+  dialog#auth-dialog {
+    background-color: var(--dialog-bg);
+    color: var(--text-color);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    gap: 2.5rem;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    border-radius: var(--radius);
+    margin: 0;
+
+    &::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--discord-color);
+      color: var(--white-color);
+      transition: all 0.3s ease;
+      border-color: var(--discord-dark-color);
+
+      &:hover {
+        background-color: #5865f2;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4);
+      }
+
+      &:active {
+        background-color: var(--discord-dark-color);
+        transform: translateY(0);
+        box-shadow: 0 2px 5px rgba(88, 101, 242, 0.4);
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--discord-color);
+      }
+
+      svg {
+        width: 1.5rem;
+        height: auto;
+        fill: var(--white-color);
+        background-color: transparent;
+      }
+    }
+
+    p {
+      a {
+        color: var(--discord-color);
+        text-decoration: none;
+        font-weight: 900;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: var(--dark-color);
+          text-decoration: underline;
+        }
+      }
+
+    }
+  }
+}

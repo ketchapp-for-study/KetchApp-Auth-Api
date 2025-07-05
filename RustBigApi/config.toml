@@ -1,0 +1,4 @@
+database_url="postgresql://postgres:password@localhost:5432/postgres"
+jwt_issuer="MySecureApp"
+jwt_audience="MySecureApp-users"
+jwt_exp_secs=3600
