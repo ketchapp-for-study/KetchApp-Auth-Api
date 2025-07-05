@@ -15,13 +15,14 @@ pub struct GlobalState {
 
 pub enum GlobalStateAction {
     SetTheme(Theme),
+    SetVisualTheme(Theme),
     SetIsAuth(bool),
     SetIsLoaded(bool),
 }
 impl GlobalState {
     pub fn new() -> Self {
         Self {
-            theme: RwSignal::new(Theme::Light),
+            theme: RwSignal::new(Theme::default()),
             account: RwSignal::new(UserProfile {
                 id: 0,
                 name: "Alessandro".to_string(),
@@ -34,6 +35,9 @@ impl GlobalState {
     pub fn update(&self, action: GlobalStateAction) {
         match action {
             GlobalStateAction::SetTheme(theme) => {
+                self.theme.set(theme);
+            }
+            GlobalStateAction::SetVisualTheme(theme) => {
                 self.theme.set(theme);
             }
             GlobalStateAction::SetIsAuth(is_auth) => {

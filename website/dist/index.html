@@ -13,8 +13,8 @@
     <!-- Removed data-wasm-opt="z" to avoid issues if wasm-opt is not installed -->
     
 <script type="module">
-import init, * as bindings from '/website-a581b1cee922f7a0.js';
-const wasm = await init({ module_or_path: '/website-a581b1cee922f7a0_bg.wasm' });
+import init, * as bindings from '/website-f186a61edca10f9b.js';
+const wasm = await init({ module_or_path: '/website-f186a61edca10f9b_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -23,7 +23,7 @@ window.wasmBindings = bindings;
 dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
 </script>
-<link rel="modulepreload" href="/website-a581b1cee922f7a0.js" crossorigin="anonymous" integrity="sha384-kJPvI6goDlnWrDoU82WG8A5vEYAkL1oyLJNOH1IRQNgIMrn6jZrh8F04kDe54aRw"><link rel="preload" href="/website-a581b1cee922f7a0_bg.wasm" crossorigin="anonymous" integrity="sha384-lf3pTkrjQPgSq9Z2TAIOmvuE3f4ondwsqEtmN0jwv33NmzKrA/w6rMQWd6qv9DeW" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/website-f186a61edca10f9b.js" crossorigin="anonymous" integrity="sha384-RazP4UWrHM/et9e1mLQApBovPuotNI0cZgxdE5N8nU9bG0jjnRidVErlzZvh4U6l"><link rel="preload" href="/website-f186a61edca10f9b_bg.wasm" crossorigin="anonymous" integrity="sha384-RHRTxqP+1sOsP5a+3oAK/ukJyvdav8kfD2zWwoIff6M00PWlnrgUn4kakFEhKteE" as="fetch" type="application/wasm"></head>
 
 <body><script>"use strict";
 

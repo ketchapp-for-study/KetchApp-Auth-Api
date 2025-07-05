@@ -1,13 +1,12 @@
-use actix_web::web::Data;
 use crate::errors::ServiceError;
 pub use crate::models::user::{NewUser, User};
 use crate::repositories::{establish_connection, PgPool};
 use crate::schema::users;
+use crate::schema::users::dsl::*;
 use crate::schema::{groups, user_groups};
 use diesel::prelude::*;
 use diesel::row::NamedRow;
 use uuid::Uuid;
-use crate::schema::users::dsl::*;
 
 pub fn get_users(pool: &PgPool) -> Result<Vec<User>, diesel::result::Error> {
     let mut conn = pool.get().map_err(|e| {
