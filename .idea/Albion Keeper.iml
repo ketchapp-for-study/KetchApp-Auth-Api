@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/RustBigApi/crates/api/private/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/RustBigApi/crates/api/private/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/RustBigApi/crates/common/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/RustBigApi/crates/permission_macro/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/website/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/RustBigApi/target" />
       <excludeFolder url="file://$MODULE_DIR$/website/target" />

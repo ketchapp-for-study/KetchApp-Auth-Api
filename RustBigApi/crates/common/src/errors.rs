@@ -24,6 +24,8 @@ pub enum ServiceError {
     NotFound(String),
     #[error("Conflict: {0}")]
     Conflict(String),
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
 }
 
 impl ServiceError {
@@ -49,6 +51,7 @@ impl ResponseError for ServiceError {
             ServiceError::ValidationError(_) => StatusCode::BAD_REQUEST,
             ServiceError::NotFound(_) => StatusCode::NOT_FOUND,
             ServiceError::Conflict(_) => StatusCode::CONFLICT,
+            ServiceError::Forbidden(_) => StatusCode::FORBIDDEN,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -59,6 +62,7 @@ impl ResponseError for ServiceError {
             ServiceError::ValidationError(msg) => ("Validation Error", msg.clone()),
             ServiceError::NotFound(msg) => ("Not Found", msg.clone()),
             ServiceError::Conflict(msg) => ("Conflict", msg.clone()),
+            ServiceError::Forbidden(msg) => ("Forbidden", msg.clone()),
             ServiceError::InternalServerError => ("Internal Server Error", self.to_string()),
             ServiceError::BlockingError => ("Blocking Error", self.to_string()),
             ServiceError::DatabaseError(_) => ("Database Error", self.to_string()),

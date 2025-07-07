@@ -7,10 +7,10 @@ use crate::handlers::route_config;
 use actix_cors::Cors;
 use actix_web::http::header::CONTENT_TYPE;
 use actix_web::middleware::Logger;
-use actix_web::{App, HttpServer, web};
+use actix_web::{web, App, HttpServer};
 use common::config::app_config::AppConfig;
-use diesel::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
+use diesel::PgConnection;
 use std::env;
 use tracing::info;
 use utoipa::OpenApi;
@@ -62,7 +62,13 @@ async fn main() -> Result<(), std::io::Error> {
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(app_config.clone()))
             .wrap(Logger::default())
-            .wrap(Cors::default().allowed_header(CONTENT_TYPE))
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allow_any_method()
+                    .allow_any_header()
+                    .supports_credentials(),
+            )
             .configure(route_config)
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")

@@ -14,3 +14,5 @@ pub fn establish_connection(pool: &PgPool) -> Result<PooledConnection<Connection
     })
 }
 pub mod users_repo;
+pub mod permissions_repo;
+pub mod groups_repo;

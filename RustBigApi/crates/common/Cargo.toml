@@ -49,5 +49,8 @@ argon2 = { workspace = true }
 rand = { workspace = true }
 uuid = { workspace = true }
 
+# Custom Dep
+permission_macro = { path = "../permission_macro" }
+
 [dev-dependencies]
 dhat = { workspace = true}

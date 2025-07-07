@@ -17,14 +17,24 @@ pub fn get_users(pool: &PgPool) -> Result<Vec<User>, diesel::result::Error> {
     })?;
     users::table
         .select((
-            users::id,
-            users::username,
-            users::email,
-            users::password,
-            users::created_at,
-            users::updated_at,
+            id,
+            username,
+            email,
+            password,
+            created_at,
+            updated_at,
         ))
         .load::<User>(&mut conn)
+}
+
+pub fn get_user(pool: &PgPool, user_id: Uuid) -> Result<User, diesel::result::Error> {
+    let mut conn = establish_connection(pool)?;
+    users::table
+        .filter(id.eq(user_id))
+        .first::<User>(&mut conn)
+        .map_err(|e| {
+            diesel::result::Error::NotFound
+        })
 }
 
 pub fn new_user(pool: &PgPool, new_user: NewUser) -> Result<User, diesel::result::Error> {

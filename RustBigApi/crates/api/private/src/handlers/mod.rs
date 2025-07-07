@@ -6,6 +6,7 @@ pub fn route_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
             .wrap(AuthMiddleware)
-            .service(users::get_users_handler),
+            .service(users::get_users_handler)
+            .service(users::get_me_handler),
     );
 }

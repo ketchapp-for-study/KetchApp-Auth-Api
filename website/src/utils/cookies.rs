@@ -37,4 +37,15 @@ impl CookieManager {
         }
         None
     }
+
+    pub fn delete(name: &str) {
+        if let Some(document) = web_sys::window().and_then(|w| w.document()) {
+            let cookie_str = format!("{}=; path=/; max-age=0", name);
+            let _ = js_sys::Reflect::set(
+                document.as_ref(),
+                &JsValue::from_str("cookie"),
+                &JsValue::from_str(&cookie_str),
+            );
+        }
+    }
 }

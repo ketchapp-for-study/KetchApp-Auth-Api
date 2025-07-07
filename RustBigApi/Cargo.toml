@@ -2,7 +2,8 @@
 members = [
     "crates/api/authentication",
     "crates/api/private",
-    "crates/common"
+    "crates/common",
+    "crates/permission_macro"
 ]
 
 [package]

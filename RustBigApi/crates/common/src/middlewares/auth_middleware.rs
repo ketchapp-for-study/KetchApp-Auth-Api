@@ -53,12 +53,10 @@ where
 
     // Main logic for handling each incoming request
     fn call(&self, mut req: ServiceRequest) -> Self::Future {
-        // Try to extract the JWT token from the request using the shared utility function
-        let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET env variable must be set");
         let claims = {
             // Convert ServiceRequest to HttpRequest reference for utility usage
             let http_req = req.request();
-            extract_jwt_claims_from_request(http_req, &secret).ok().flatten()
+            extract_jwt_claims_from_request(http_req).ok().flatten()
         };
         let service = self.service.clone();
         Box::pin(async move {

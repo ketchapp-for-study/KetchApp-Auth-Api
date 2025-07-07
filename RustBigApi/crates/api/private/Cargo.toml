@@ -51,5 +51,8 @@ uuid = { workspace = true }
 # * Common
 common = { path = "../../common" }
 
+# Permission Macro
+permission_macro = { path = "../../permission_macro" }
+
 [dev-dependencies]
 dhat = { workspace = true}

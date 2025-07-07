@@ -1,50 +1,44 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, AttributeArgs, ItemFn, Lit, Meta, NestedMeta};
+use syn::{parse_macro_input, ItemFn, Lit};
+use syn::parse::Parser;
 
 #[proc_macro_attribute]
 pub fn permission(args: TokenStream, input: TokenStream) -> TokenStream {
-    // Parse the attribute arguments
-    let args = parse_macro_input!(args as AttributeArgs);
+    // Parse the attribute arguments as a Vec<Lit>
+    let args = syn::punctuated::Punctuated::<Lit, syn::Token![,]>::parse_terminated
+        .parse(args)
+        .expect("Failed to parse permission macro arguments");
     let input_fn = parse_macro_input!(input as ItemFn);
 
-    // Extract the permission string from the attribute
-    let mut required_perm = None;
-    for arg in args {
-        if let NestedMeta::Lit(Lit::Str(lit_str)) = arg {
-            required_perm = Some(lit_str.value());
+    // Extract all permission strings from the attribute
+    let required_perms: Vec<String> = args.iter().filter_map(|lit| {
+        if let Lit::Str(lit_str) = lit {
+            Some(lit_str.value())
+        } else {
+            None
         }
+    }).collect();
+    if required_perms.is_empty() {
+        panic!("permission macro requires at least one string argument");
     }
-    let required_perm = required_perm.expect("permission macro requires a string argument");
 
-    // Get the function signature and body
+    // Only support a single permission string for now (can be extended for multiple)
+    if required_perms.len() != 1 {
+        panic!("permission macro requires exactly one string argument for this usage");
+    }
+    let perm = &required_perms[0];
+
     let vis = &input_fn.vis;
     let sig = &input_fn.sig;
     let block = &input_fn.block;
     let attrs = &input_fn.attrs;
 
-    // Generate the wrapper code
     let expanded = quote! {
         #(#attrs)*
-        #vis #sig {
-            use common::utils::extract_jwt_claims::extract_jwt_claims_from_request;
-            use common::utils::get_user_permissions;
-            use uuid::Uuid;
-            let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET env variable must be set");
-            let claims = extract_jwt_claims_from_request(&req, &secret)
-                .map_err(|e| ServiceError::Unauthorized(e.to_string()))?;
-            let user_uuid = Uuid::parse_str(&claims.sub)
-                .map_err(|_| ServiceError::Unauthorized("Invalid user UUID in token".to_string()))?;
-            let mut conn = pool.get().map_err(|_| ServiceError::InternalServerError("DB connection error".to_string()))?;
-            let permissions = get_user_permissions(&mut conn, user_uuid)
-                .map_err(|_| ServiceError::InternalServerError("Failed to fetch permissions".to_string()))?;
-            if !permissions.contains(&#required_perm.to_string()) {
-                return Err(ServiceError::Forbidden(format!("Missing required permission: {}", #required_perm)));
-            }
-            #block
-        }
+        const REQUIRED_PERMISSION: &str = #perm;
+        #vis #sig #block
     };
     TokenStream::from(expanded)
 }
-

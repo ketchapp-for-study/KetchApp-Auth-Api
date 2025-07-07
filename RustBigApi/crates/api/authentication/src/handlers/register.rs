@@ -44,7 +44,7 @@ pub async fn register_handler(
     if users_repo::user_exists_by_username_or_email(&pool, &body.username, &body.email)
         .map_err(|_| ServiceError::InternalServerError)?
     {
-        return Err(ServiceError::Conflict("Username or email already in use".into()));
+        return Err(ServiceError::Conflict("Username or email already in use".   into()));
     }
 
     // Step 2: Hash password with Argon2
@@ -84,7 +84,6 @@ pub async fn register_handler(
         iat: now.timestamp() as usize,
         iss: app_config.jwt_issuer.clone(),
         aud: app_config.jwt_audience.clone(),
-        roles: Vec::new(),
     };
     let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET env variable not set");
     let token = match jsonwebtoken::encode(

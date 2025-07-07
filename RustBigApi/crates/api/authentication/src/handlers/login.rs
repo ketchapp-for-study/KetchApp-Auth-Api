@@ -74,7 +74,6 @@ pub async fn login_handler(
         iat: Utc::now().timestamp() as usize,
         iss: app_config.jwt_issuer.clone(),
         aud: app_config.jwt_audience.clone(),
-        roles: Vec::new()
     };
 
     // Step 6: Generate JWT token

@@ -4,6 +4,7 @@ use utoipa::OpenApi;
 #[openapi(
     paths(
         crate::handlers::users::get_users_handler,
+        crate::handlers::users::get_me_handler
     ),
     components(
         schemas(

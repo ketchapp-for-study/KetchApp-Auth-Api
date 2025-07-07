@@ -16,55 +16,56 @@ struct LoginForm {
 }
 
 #[derive(Serialize)]
-struct LoginPayload {
-    username: String,
-    password: String,
-}
-
-fn handle_login_submit(username: String, password: String) {
-    let payload = LoginPayload {
-        username,
-        password,
-    };
-
-    let json_payload = serde_json::to_string(&payload).expect("Failed to serialize payload");
-    log::info!("Payload: {}", json_payload);
-
-    spawn_local(async move {
-        let mut opts = RequestInit::new();
-        opts.method("POST");
-        opts.body(Some(&wasm_bindgen::JsValue::from_str(&json_payload)));
-        opts.credentials(web_sys::RequestCredentials::Include);
-        opts.mode(RequestMode::Cors);
-
-        let request = Request::new_with_str_and_init("http://localhost:8001/api/login", &opts)
-            .expect("Failed to create request");
-        request.headers().set("Content-Type", "application/json").expect("Failed to set headers");
-
-        let window = web_sys::window().expect("No global `window` exists");
-        let promise = window.fetch_with_request(&request);
-        let future = wasm_bindgen_futures::JsFuture::from(promise);
-
-        match future.await {
-            Ok(response) => {
-                let response: Response = response.dyn_into().expect("Failed to cast response");
-                if response.ok() {
-                    log::info!("Login successful");
-                } else {
-                    log::error!("Login failed");
-                }
-            }
-            Err(err) => {
-                log::error!("Fetch error: {:?}", err);
-            }
-        }
-    });
+pub struct LoginPayload {
+    pub(crate) username: String,
+    pub(crate) password: String,
 }
 
 #[component]
 pub fn LoginView() -> impl IntoView {
     let username = RwSignal::new(String::new());
     let password = RwSignal::new(String::new());
+
+    let handle_login_submit = move |username: String, password: String| {
+        let payload = LoginPayload {
+            username,
+            password,
+        };
+
+        let json_payload = serde_json::to_string(&payload).expect("Failed to serialize payload");
+        log::info!("Payload: {}", json_payload);
+
+        spawn_local(async move {
+            let mut opts = RequestInit::new();
+            opts.set_method("POST");
+            opts.set_body(&wasm_bindgen::JsValue::from_str(&json_payload));
+            opts.set_credentials(web_sys::RequestCredentials::Include);
+            opts.set_mode(RequestMode::Cors);
+
+            let request = Request::new_with_str_and_init("http://localhost:8001/api/login", &opts)
+                .expect("Failed to create request");
+            request.headers().set("Content-Type", "application/json").expect("Failed to set headers");
+
+            let window = web_sys::window().expect("No global `window` exists");
+            let promise = window.fetch_with_request(&request);
+            let future = wasm_bindgen_futures::JsFuture::from(promise);
+
+            match future.await {
+                Ok(response) => {
+                    let response: Response = response.dyn_into().expect("Failed to cast response");
+                    if response.ok() {
+                        log::info!("Login successful");
+                        // Qui puoi aggiungere logica custom se serve
+                    } else {
+                        log::error!("Login failed");
+                    }
+                }
+                Err(err) => {
+                    log::error!("Fetch error: {:?}", err);
+                }
+            }
+        });
+    };
 
     view! {
         <p>"username: " {move || username.get()}</p>

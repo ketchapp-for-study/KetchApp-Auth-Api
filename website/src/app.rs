@@ -1,12 +1,17 @@
 use leptos::prelude::*;
 use leptos_meta::*;
+use log::info;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{window, Event};
+use gloo_net::http::{Request};
+use leptos::task::spawn_local;
 
 use crate::router::AppRouter;
 use crate::states::theme::{detect_system_theme, get_theme_cookie, ThemeSettings};
 use crate::states::{GlobalState, GlobalStateAction};
+use crate::pages::auth::auth_view::AuthDialog;
+use crate::utils::cookies::CookieManager;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -27,10 +32,7 @@ pub fn App() -> impl IntoView {
     let closure = Closure::wrap(Box::new(move |_: Event| {
         if let ThemeSettings::Auto(_) = state_ref.theme.get_untracked() {
             let new_theme = detect_system_theme();
-            log::info!("Detected system theme: {:?}", new_theme);
             state_ref.update(GlobalStateAction::SetTheme(new_theme));
-        } else {
-            log::info!("Manual theme setting, not updating.");
         }
     }) as Box<dyn FnMut(_)>);
 
@@ -46,12 +48,27 @@ pub fn App() -> impl IntoView {
 
     closure.forget();
 
+    // --- Autenticazione ---
+    // Chiamata API /api/me subito al mount per verificare autenticazione
+    let is_auth = state.is_auth;
+    spawn_local(async move {
+        match Request::get("http://localhost:8000/api/users/@me").credentials(web_sys::RequestCredentials::Include).send().await {
+            Ok(resp) if resp.ok() => is_auth.set(true),
+            _ => is_auth.set(false),
+        }
+    });
+
+    let is_auth = state.is_auth;
+
     view! {
         <Html attr:lang="en" attr:dir="ltr" attr:data-theme=move || state.clone().theme.get().to_string()/>
         <Title text="Welcome to Leptos CSR"/>
         <Meta charset="UTF-8"/>
         <Meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+        <Show when=move || !is_auth.get() fallback=|| ()>
+            <AuthDialog />
+        </Show>
         <AppRouter/>
     }
 }
