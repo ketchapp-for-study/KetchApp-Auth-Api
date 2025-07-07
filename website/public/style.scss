@@ -170,4 +170,85 @@ html {
 
     }
   }
+
+  dialog#forbidden-modal {
+    background-color: var(--dialog-bg);
+    color: var(--text-color);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    gap: 2.5rem;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    border-radius: var(--radius);
+    margin: 0;
+    min-width: 320px;
+    min-height: 180px;
+    z-index: 10001;
+
+    &::backdrop {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+    }
+
+    h2 {
+      color: #c00;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    p {
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+    button {
+      padding: 0.5rem 1.5rem;
+      font-size: 1.1rem;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--discord-color);
+      color: var(--white-color);
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      &:hover {
+        background: var(--discord-dark-color);
+        color: var(--white-color);
+      }
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .input-error {
+    border: 2px solid #f86c6b !important;
+    background: #fff0f0 !important;
+    color: #b91d1d !important;
+    border-radius: 0.4rem;
+    padding: 0.5rem;
+    transition: border 0.2s, background 0.2s, color 0.2s;
+  }
+  .input-error-message {
+    color: #fff;
+    background: #f86c6b;
+    border-radius: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.95em;
+    font-weight: 700;
+    margin-top: 0.1rem;
+    box-shadow: 0 2px 8px rgba(248,108,107,0.15);
+    align-self: flex-start;
+  }
 }

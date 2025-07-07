@@ -1,17 +1,74 @@
 use leptos::prelude::*;
 use leptos_meta::*;
-use log::info;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{window, Event};
 use gloo_net::http::{Request};
 use leptos::task::spawn_local;
-
+use leptos_router::components::Router;
+use leptos_router::hooks::{use_location, use_navigate};
 use crate::router::AppRouter;
-use crate::states::theme::{detect_system_theme, get_theme_cookie, ThemeSettings};
+use crate::states::theme::{detect_system_theme, ThemeSettings};
 use crate::states::{GlobalState, GlobalStateAction};
 use crate::pages::auth::auth_view::AuthDialog;
-use crate::utils::cookies::CookieManager;
+use crate::utils::notification::NotificationView;
+use crate::utils::show_modal::show_modal_by_id;
+use log::info;
+use crate::states::FORBIDDEN_ERROR;
+
+#[component]
+pub fn ForbiddenModal() -> impl IntoView {
+    let error = FORBIDDEN_ERROR.clone();
+    let modal_id = "forbidden-modal";
+
+    create_effect(move |_| {
+        let val = error.get();
+        info!("[ForbiddenModal] error.get() = {:?}", val);
+        if val.is_some() {
+            info!("[ForbiddenModal] Chiamo show_modal_by_id");
+            show_modal_by_id(modal_id);
+        }
+    });
+
+    let navigate = use_navigate();
+    view! {
+        <Show when=move || error.get().is_some() fallback=|| ()>
+            <dialog id=modal_id style="z-index:10000;" open>
+                <h2 style="color:#c00;">Errore</h2>
+                <p style="margin-bottom:2rem;">{move || {
+                    let val = error.get();
+                    info!("[ForbiddenModal] Render p: error.get() = {:?}", val);
+                    val.unwrap_or("Non hai i permessi per questa azione.".to_string())
+                }}</p>
+                <button style="padding:0.5rem 1.5rem;font-size:1.1rem;" on:click=move |_| {
+                    info!("[ForbiddenModal] Click Go Home");
+                    error.set(None);
+                    (navigate)("/", leptos_router::NavigateOptions::default());
+                }>
+                    Go Home
+                </button>
+            </dialog>
+        </Show>
+    }
+}
+
+#[component]
+pub fn MainLayout() -> impl IntoView {
+    let state = expect_context::<crate::states::GlobalState>();
+    let is_auth = state.is_auth;
+    let location = use_location();
+    view! {
+        <ForbiddenModal />
+        <NotificationView />
+        <Show when=move || {
+            let path = location.pathname.get();
+            !is_auth.get() && path != "/login" && path != "/register"
+        } fallback=|| ()>
+            <AuthDialog />
+        </Show>
+        <AppRouter/>
+    }
+}
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -58,17 +115,13 @@ pub fn App() -> impl IntoView {
         }
     });
 
-    let is_auth = state.is_auth;
-
     view! {
         <Html attr:lang="en" attr:dir="ltr" attr:data-theme=move || state.clone().theme.get().to_string()/>
         <Title text="Welcome to Leptos CSR"/>
         <Meta charset="UTF-8"/>
         <Meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-        <Show when=move || !is_auth.get() fallback=|| ()>
-            <AuthDialog />
-        </Show>
-        <AppRouter/>
+        <Router>
+            <MainLayout />
+        </Router>
     }
 }
