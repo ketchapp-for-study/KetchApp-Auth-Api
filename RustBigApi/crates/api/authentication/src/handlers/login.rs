@@ -1,4 +1,4 @@
-use crate::models::claims::Claims;
+use common::models::claims::Claims;
 use crate::models::login::LoginUser;
 use crate::DbPool;
 use actix_web::cookie::{Cookie, SameSite};
@@ -79,7 +79,7 @@ pub async fn login_handler(
 
     // Step 6: Generate JWT token
     // Use the JWT secret from the .env file
-    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET env variable not set");
+    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET env variable");
     let token = claims
         .generate_jwt(&secret)
         .map_err(|_| ServiceError::InternalServerError)?;

@@ -3,6 +3,7 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(
     paths(
+        crate::handlers::users::get_users_handler,
     ),
     components(
         schemas(

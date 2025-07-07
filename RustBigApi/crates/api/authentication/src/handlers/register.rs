@@ -1,4 +1,4 @@
-use crate::models::claims::Claims;
+use common::models::claims::Claims;
 use crate::models::register::RegisterUser;
 use crate::DbPool;
 use actix_web::{post, web, HttpResponse};
