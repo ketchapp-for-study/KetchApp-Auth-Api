@@ -1,4 +1,0 @@
-# Project exclude paths
-/target/
-/.env
-/Cargo.lock

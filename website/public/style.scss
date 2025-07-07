@@ -25,7 +25,8 @@
   --white-color: #ffffff;
   --black-color: #000000;
 
-  &[data-theme="dark"] {
+  &[data-theme="dark"],
+  &[data-theme="auto-dark"] {
     --background-color: #16181a;
     --text-color: #ffffff;
     --button-bg: #16181a;
@@ -110,6 +111,14 @@ html {
     &::backdrop {
       background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      max-width: 400px;
     }
 
     button {

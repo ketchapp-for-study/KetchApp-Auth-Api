@@ -67,10 +67,9 @@ pub fn LoginView() -> impl IntoView {
     let password = RwSignal::new(String::new());
 
     view! {
-            <h1>"Login"</h1>
-            <p>"username: " {move || username.get()}</p>
-            <p>"password: " {move || password.get()}</p>
-                <form>
+        <p>"username: " {move || username.get()}</p>
+        <p>"password: " {move || password.get()}</p>
+        <form>
             <input
                 type="text"
                 placeholder="Enter your username"

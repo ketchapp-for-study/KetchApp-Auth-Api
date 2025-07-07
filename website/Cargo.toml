@@ -12,7 +12,7 @@ targets = ["wasm32-unknown-unknown"]
 leptos = { version = "0.8.2", features = ["csr"] }
 leptos_meta = "0.8.2"
 leptos_router = "0.8.2"
-leptos-use = "0.16.2"
+leptos-use = { version = "0.16.2", features = ["use_cookie"] }
 leptos-struct-table = "0.15.0"
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"

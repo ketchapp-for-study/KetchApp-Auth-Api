@@ -1,2 +1,6 @@
 # Project exclude paths
-/website/target/
+/website/target/!/website/target/
+!/website/dist/
+!/RustBigApi/target/
+!/RustBigApi/Cargo.lock
+!/website/Cargo.lock
