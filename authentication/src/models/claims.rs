@@ -1,4 +1,5 @@
-use serde::{Serialize, Deserialize};
+use jsonwebtoken::{Algorithm, Header};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -10,9 +11,12 @@ pub struct Claims {
 }
 
 impl Claims {
-    pub fn generate_jwt(&self, secret: &str) -> Result<String, jsonwebtoken::errors::Error> {
-        let header = jsonwebtoken::Header::default();
-        let encoding_key = jsonwebtoken::EncodingKey::from_secret(secret.as_ref());
+    pub fn generate_jwt(
+        &self,
+        private_key: &[u8],
+    ) -> Result<String, jsonwebtoken::errors::Error> {
+        let header = Header::new(Algorithm::RS256);
+        let encoding_key = jsonwebtoken::EncodingKey::from_rsa_pem(private_key)?;
         jsonwebtoken::encode(&header, self, &encoding_key)
     }
 }

@@ -83,15 +83,11 @@ pub async fn register_handler(
         aud: app_config.jwt_audience.clone(),
     };
 
-    // * 7. Recupero della chiave segreta e generazione del token JWT firmato
-    let secret =
-        std::env::var("JWT_SECRET").expect("Variabile d'ambiente JWT_SECRET non impostata");
-    let token = jsonwebtoken::encode(
-        &jsonwebtoken::Header::default(),
-        &claims,
-        &jsonwebtoken::EncodingKey::from_secret(secret.as_ref()),
-    )
-    .map_err(|_| ServiceError::InternalServerError)?;
+    let private_key = std::fs::read("/app/private_key.pem")
+        .map_err(|_| ServiceError::InternalServerError)?;
+    let token = claims
+        .generate_jwt(&private_key)
+        .map_err(|_| ServiceError::InternalServerError)?; 
 
     // * 8. Creazione di un cookie HTTP-only che contiene il token JWT per l'autenticazione
     let cookie = Cookie::build("auth_token", token.clone())

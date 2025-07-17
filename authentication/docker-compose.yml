@@ -22,7 +22,9 @@ services:
       - "8080:8080"
     volumes:
       - ./config.toml:/app/config.toml
-    command: ["./authentication"]
+      - ./private_key.pem:/app/private_key.pem
+      - ./public_key.pem:/app/public_key.pem
+    command: ["/app/entrypoint.sh", "/app/authentication"]
 
 volumes:
   postgres_data:
