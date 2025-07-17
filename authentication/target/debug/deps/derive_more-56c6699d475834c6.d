@@ -1,0 +1,9 @@
+/Users/tacosalfornoh/Coding/Rust/RustProject/authentication/target/debug/deps/derive_more-56c6699d475834c6.d: /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/lib.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/as.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/mod.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/thiserror/mod.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/thiserror/aserror.rs
+
+/Users/tacosalfornoh/Coding/Rust/RustProject/authentication/target/debug/deps/libderive_more-56c6699d475834c6.rmeta: /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/lib.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/as.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/mod.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/thiserror/mod.rs /Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/thiserror/aserror.rs
+
+/Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/lib.rs:
+/Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/as.rs:
+/Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/mod.rs:
+/Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/thiserror/mod.rs:
+/Users/tacosalfornoh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.0.1/src/vendor/thiserror/aserror.rs:
