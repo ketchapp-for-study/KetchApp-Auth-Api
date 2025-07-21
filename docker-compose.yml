@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    container_name: ketchapp-auth-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  auth-api:
+    build: .
+    container_name: ketchapp-auth-api
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/postgres
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./config.toml:/app/config.toml
+      - ./private_key.pem:/app/private_key.pem
+      - ./public_key.pem:/app/private_key.pem
+
+volumes:
+  postgres_data:

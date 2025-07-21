@@ -1,2 +1,4 @@
-# Project exclude paths
-!/target/
+/.zed
+/.idea
+/target
+./Cargo.lock
