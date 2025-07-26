@@ -6,6 +6,10 @@ PROJECT_NAME="ketchapp-auth"
 # Compose file path
 COMPOSE_FILE="docker-compose.yml"
 
+# Build step
+echo "Building Docker images..."
+docker compose -f "$COMPOSE_FILE" build
+
 # Stop and remove existing containers and volumes
 echo "Stopping and removing existing containers and volumes..."
 docker compose -f "$COMPOSE_FILE" down -v
