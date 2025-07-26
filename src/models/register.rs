@@ -14,9 +14,10 @@ use crate::models::user::NewUser;
     description = "Register a user in the system",
     example = json!({"username": "johndoe", "email": "john_doe@gmail.com", "password": "Secret123!"})
 )]
+#[derive(Debug)]
 pub struct RegisterUser {
     #[validate(custom(function = "validate_username"))]
-    #[schema(min_length = 6, max_length = 16, pattern = "^[a-zA-Z]{6,16}$")]
+    #[schema(min_length = 6, max_length = 32, pattern = "^[a-zA-Z]{6,16}$")]
     pub username: String,
 
     #[validate(custom(function = "validate_email"))]
@@ -83,11 +84,12 @@ pub fn validate_password_logic(password: &str) -> Result<(), String> {
 }
 
 pub fn validate_username(username: &str) -> Result<(), ValidationError> {
-    validate_username_logic(username).map_err(|e| {
+    if let Err(e) = validate_username_logic(username) {
         let mut err = ValidationError::new("invalid_username");
         err.message = Some(e.to_string().into());
-        err
-    })
+        return Err(err);
+    }
+    Ok(())
 }
 
 pub fn validate_email(email: &str) -> Result<(), ValidationError> {

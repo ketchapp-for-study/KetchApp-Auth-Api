@@ -6,12 +6,13 @@ use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use chrono::{Duration, Utc};
 use rand::rngs::OsRng;
 use validator::Validate;
-
+use diesel::prelude::*;
+use tracing::error;
 use crate::{
     config::app_config::AppConfig,
     errors::{ErrorResponse, ServiceError},
-    models::{claims::Claims, register::RegisterUser, user::User},
-    repositories::users_repo,
+    models::{claims::Claims, register::RegisterUser, user::User, auth_response_model::AuthResponse},
+    repositories::{users_repo, establish_connection},
     DbPool,
 };
 
@@ -20,7 +21,7 @@ use crate::{
         path = "/api/register",
         request_body = RegisterUser,
         responses(
-            (status = 200, description = "User created", body = User),
+            (status = 200, description = "User created", body = AuthResponse),
             (status = 400, description = "Bad Request: invalid input", body = ErrorResponse),
             (status = 409, description = "Conflict: user already exists", body = ErrorResponse),
             (status = 404, description = "Not Found", body = ErrorResponse),
@@ -38,15 +39,24 @@ pub async fn register_handler(
     app_config: web::Data<AppConfig>,
     body: web::Json<RegisterUser>,
 ) -> Result<HttpResponse, ServiceError> {
-    body.validate()
-        .map_err(|e| ServiceError::ValidationError(format!("{:?}", e)))?;
+    // Validazione input
+    if let Err(validation_errors) = body.validate() {
+        return Err(ServiceError::ValidationError(format!("{:?}", validation_errors)));
+    }
 
+    // Verifica esistenza utente PRIMA di qualsiasi altra operazione
     if users_repo::user_exists_by_username_or_email(&pool, &body.username, &body.email)
         .map_err(|err| ServiceError::DatabaseError(err))?
     {
         return Err(ServiceError::Conflict("Username o email già in uso".into()));
     }
 
+    // Verifica che la chiave privata sia leggibile PRIMA di creare l'utente
+    let private_key = std::fs::read("./private_key.pem").map_err(|err| {
+        ServiceError::JwtKeyError(format!("Errore lettura chiave privata: {:?}", err))
+    })?;
+
+    // Hash della password
     let mut rng = OsRng;
     let salt = SaltString::generate(&mut rng);
     let password_hash = Argon2::default()
@@ -60,30 +70,44 @@ pub async fn register_handler(
         password: password_hash,
     };
 
-    let user = web::block({
+    // Usa una transazione per garantire atomicità
+    let (user, token) = web::block({
         let pool = pool.clone();
-        move || users_repo::new_user(&pool, new_user)
+        let private_key = private_key.clone();
+        let app_config = app_config.clone();
+        
+        move || -> Result<(User, String), ServiceError> {
+            // Ottieni connessione dal pool
+            let mut conn = establish_connection(&pool)
+                .map_err(|e| ServiceError::DatabaseError(e))?;
+            
+            // Esegui tutto in una transazione
+            conn.transaction::<(User, String), diesel::result::Error, _>(|conn| {
+                // Crea l'utente nel database
+                let user = users_repo::create_user_with_connection(conn, new_user)?;
+                
+                // Crea i claims con l'ID reale dell'utente
+                let now = Utc::now();
+                let claims = Claims {
+                    sub: user.id.to_string(),
+                    exp: (now + Duration::seconds(app_config.jwt_exp_secs as i64)).timestamp() as usize,
+                    iat: now.timestamp() as usize,
+                    iss: app_config.jwt_issuer.clone(),
+                    aud: app_config.jwt_audience.clone(),
+                };
+                
+                // Genera JWT - se fallisce, la transazione verrà rollback-ata
+                let token = claims.generate_jwt(&private_key)
+                    .map_err(|_| diesel::result::Error::RollbackTransaction)?;
+                
+                Ok((user, token))
+            }).map_err(|e| ServiceError::DatabaseError(e))
+        }
     })
     .await
-    .map_err(|_| ServiceError::InternalServerError)?
-    .map_err(|_| ServiceError::DatabaseError(diesel::result::Error::RollbackTransaction))?;
+    .map_err(|_| ServiceError::InternalServerError)??;
 
-    let now = Utc::now();
-    let claims = Claims {
-        sub: user.id.to_string(),
-        exp: (now + Duration::seconds(app_config.jwt_exp_secs as i64)).timestamp() as usize,
-        iat: now.timestamp() as usize,
-        iss: app_config.jwt_issuer.clone(),
-        aud: app_config.jwt_audience.clone(),
-    };
-
-    let private_key = std::fs::read("/app/private_key.pem").map_err(|err| {
-        ServiceError::JwtKeyError(format!("Errore lettura chiave privata: {:?}", err))
-    })?;
-    let token = claims.generate_jwt(&private_key).map_err(|err| {
-        ServiceError::JwtGenerationError(format!("Errore generazione JWT: {:?}", err))
-    })?;
-
+    // Se arriviamo qui, tutto è andato bene e l'utente è stato creato con successo
     let cookie = Cookie::build("auth_token", token.clone())
         .path("/")
         .http_only(true)
@@ -91,5 +115,13 @@ pub async fn register_handler(
         .secure(true)
         .finish();
 
-    Ok(HttpResponse::Ok().cookie(cookie).body(token))
+let auth_response = AuthResponse {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    created_at: user.created_at,
+    token,
+};
+
+    Ok(HttpResponse::Ok().cookie(cookie).json(auth_response))
 }

@@ -12,6 +12,16 @@ pub fn new_user(pool: &PgPool, new_user: NewUser) -> Result<User, diesel::result
         .get_result(&mut conn)
 }
 
+// * Inserisce un nuovo utente nel database usando una connessione esistente (per transazioni)
+pub fn create_user_with_connection(
+    conn: &mut PgConnection,
+    new_user: NewUser,
+) -> Result<User, diesel::result::Error> {
+    diesel::insert_into(users::table)
+        .values(&new_user)
+        .get_result(conn)
+}
+
 // * Verifica se esiste già un utente con lo stesso username o email
 pub fn user_exists_by_username_or_email(
     pool: &PgPool,
