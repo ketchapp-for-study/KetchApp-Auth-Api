@@ -7,8 +7,8 @@ PROJECT_NAME="ketchapp-auth"
 COMPOSE_FILE="docker-compose.yml"
 
 # Build step
-echo "Building Docker images..."
-docker compose -f "$COMPOSE_FILE" build
+echo "Building Docker image with Dockerfile..."
+docker build -t ketchapp-auth .
 
 # Stop and remove existing containers and volumes
 echo "Stopping and removing existing containers and volumes..."
