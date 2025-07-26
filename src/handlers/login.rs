@@ -2,10 +2,7 @@ use actix_web::{
     cookie::{Cookie, SameSite},
     post, web, HttpResponse,
 };
-use argon2::{
-    password_hash::PasswordHash,
-    Argon2, PasswordVerifier,
-};
+use argon2::{password_hash::PasswordHash, Argon2, PasswordVerifier};
 use chrono::{Duration, Utc};
 use validator::Validate;
 
@@ -27,7 +24,9 @@ use crate::{
             (status = 409, description = "Conflict: user already exists", body = ErrorResponse),
             (status = 404, description = "Not Found", body = ErrorResponse),
             (status = 422, description = "Unprocessable Entity: validation error", body = ErrorResponse),
-            (status = 500, description = "Internal Server Error", body = ErrorResponse)
+            (status = 500, description = "Internal Server Error", body = ErrorResponse, example = json!({"code":500,"error":"Database Error","message":"Database connection failed"})),
+            (status = 500, description = "JWT Key Error", body = ErrorResponse, example = json!({"code":500,"error":"JWT Key Error","message":"Errore lettura chiave privata"})),
+            (status = 500, description = "JWT Generation Error", body = ErrorResponse, example = json!({"code":500,"error":"JWT Generation Error","message":"Errore generazione JWT"}))
         ),
         tag = "authentication"
     )]
@@ -69,8 +68,8 @@ pub async fn login_handler(
         aud: app_config.jwt_audience.clone(),
     };
 
-    let private_key = std::fs::read("/app/private_key.pem")
-        .map_err(|_| ServiceError::InternalServerError)?;
+    let private_key =
+        std::fs::read("/app/private_key.pem").map_err(|_| ServiceError::InternalServerError)?;
     let token = claims
         .generate_jwt(&private_key)
         .map_err(|_| ServiceError::InternalServerError)?;

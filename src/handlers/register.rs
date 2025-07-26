@@ -25,11 +25,13 @@ use crate::{
             (status = 409, description = "Conflict: user already exists", body = ErrorResponse),
             (status = 404, description = "Not Found", body = ErrorResponse),
             (status = 422, description = "Unprocessable Entity: validation error", body = ErrorResponse),
-            (status = 500, description = "Internal Server Error", body = ErrorResponse)
+            (status = 500, description = "Internal Server Error", body = ErrorResponse),
+            (status = 500, description = "Database Error", body = ErrorResponse, example = json!({"code":500,"error":"Database Error","message":"Database connection failed"})),
+            (status = 500, description = "JWT Key Error", body = ErrorResponse, example = json!({"code":500,"error":"JWT Key Error","message":"Errore lettura chiave privata"})),
+            (status = 500, description = "JWT Generation Error", body = ErrorResponse, example = json!({"code":500,"error":"JWT Generation Error","message":"Errore generazione JWT"}))
         ),
         tag = "authentication"
     )]
-// ... (resto degli import e del codice invariato)
 #[post("/register")]
 pub async fn register_handler(
     pool: web::Data<DbPool>,
