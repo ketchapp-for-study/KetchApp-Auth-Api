@@ -22,6 +22,10 @@ pub enum ServiceError {
     Conflict(String),
     #[error("Forbidden: {0}")]
     Forbidden(String),
+    #[error("JWT Key Error: {0}")]
+    JwtKeyError(String),
+    #[error("JWT Generation Error: {0}")]
+    JwtGenerationError(String),
 }
 
 impl ServiceError {
