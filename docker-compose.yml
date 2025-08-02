@@ -24,7 +24,6 @@ services:
     volumes:
       - ./config.toml:/app/config.toml
       - ./private_key.pem:/app/private_key.pem
-      - ./public_key.pem:/app/private_key.pem
 
 volumes:
   postgres_data:

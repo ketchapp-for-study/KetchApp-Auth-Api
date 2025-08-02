@@ -1,12 +1,6 @@
-use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use utoipa::ToSchema;
 use validator::{Validate, ValidationError};
-use uuid::Uuid;
-
-use utoipa::openapi::schema;
-use crate::models::user::NewUser;
 
 #[derive(Validate, Serialize, Deserialize, ToSchema)]
 #[schema(

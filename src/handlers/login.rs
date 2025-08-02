@@ -4,12 +4,13 @@ use actix_web::{
 };
 use argon2::{password_hash::PasswordHash, Argon2, PasswordVerifier};
 use chrono::{Duration, Utc};
+use tracing::info;
 use validator::Validate;
 
 use crate::{
     config::app_config::AppConfig,
     errors::{ErrorResponse, ServiceError},
-    models::{claims::Claims, login::LoginUser, user::User},
+    models::{auth_response_model::AuthResponse, claims::Claims, login::LoginUser, user::User},
     repositories::users_repo,
     DbPool,
 };
@@ -37,23 +38,24 @@ pub async fn login_handler(
     body: web::Json<LoginUser>,
 ) -> Result<HttpResponse, ServiceError> {
     // * * 1. Validazione dei dati di input ricevuti dal client
-    body.validate()
+    let _validate = body
+        .validate()
         .map_err(|e| ServiceError::ValidationError(format!("{:?}", e)))?;
 
     // * * 2. Recupero dell'utente dal database tramite username
     let user = users_repo::get_user_by_username(&pool, &body.username)
-        .map_err(|_| ServiceError::InternalServerError)?;
+        .map_err(|_| ServiceError::Unauthorized("Invalid username or password".into()))?;
 
     // * 3. Parsing dell'hash della password salvata per il confronto
-    let parsed_hash =
-        PasswordHash::new(&user.password).map_err(|_| ServiceError::InternalServerError)?;
+    let parsed_hash = PasswordHash::new(&user.password)
+        .map_err(|_| ServiceError::JwtGenerationError("Failed to parse password hash".into()))?;
 
     // * 4. Verifica della password fornita rispetto all'hash salvato
     if Argon2::default()
         .verify_password(body.password.as_bytes(), &parsed_hash)
         .is_err()
     {
-        return Err(ServiceError::unauthorized(
+        return Err(ServiceError::Unauthorized(
             "Invalid username or password".into(),
         ));
     }
@@ -68,11 +70,11 @@ pub async fn login_handler(
         aud: app_config.jwt_audience.clone(),
     };
 
-    let private_key =
-        std::fs::read("/app/private_key.pem").map_err(|_| ServiceError::InternalServerError)?;
+    let private_key = std::fs::read("/app/private_key.pem")
+        .map_err(|_| ServiceError::JwtGenerationError("Failed to read private key".into()))?;
     let token = claims
         .generate_jwt(&private_key)
-        .map_err(|_| ServiceError::InternalServerError)?;
+        .map_err(|_| ServiceError::JwtGenerationError("Failed to generate JWT".into()))?;
 
     // * 7. Creazione di un cookie HTTP-only che contiene il token JWT
     let cookie = Cookie::build("auth_token", token.clone())
@@ -86,5 +88,13 @@ pub async fn login_handler(
         .finish();
 
     // * 8. Restituzione della risposta HTTP con il cookie e i dati dell'utente
-    Ok(HttpResponse::Ok().cookie(cookie).json(user))
+    let user_res = AuthResponse {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        created_at: user.created_at,
+        token,
+    };
+
+    Ok(HttpResponse::Ok().cookie(cookie).json(user_res))
 }

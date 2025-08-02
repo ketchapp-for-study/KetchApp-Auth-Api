@@ -26,12 +26,8 @@ pub enum ServiceError {
     JwtKeyError(String),
     #[error("JWT Generation Error: {0}")]
     JwtGenerationError(String),
-}
-
-impl ServiceError {
-    pub fn unauthorized(message: String) -> Self {
-        ServiceError::ValidationError(message)
-    }
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
 }
 
 #[derive(Serialize, ToSchema)]
@@ -48,6 +44,7 @@ impl ResponseError for ServiceError {
             ServiceError::NotFound(_) => StatusCode::NOT_FOUND,
             ServiceError::Conflict(_) => StatusCode::CONFLICT,
             ServiceError::Forbidden(_) => StatusCode::FORBIDDEN,
+            ServiceError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -59,6 +56,7 @@ impl ResponseError for ServiceError {
             ServiceError::NotFound(msg) => ("Not Found", msg.clone()),
             ServiceError::Conflict(msg) => ("Conflict", msg.clone()),
             ServiceError::Forbidden(msg) => ("Forbidden", msg.clone()),
+            ServiceError::Unauthorized(msg) => ("Unauthorized", msg.clone()),
             _ => (binding.as_str(), self.to_string()),
         };
         let error_response = ErrorResponse {

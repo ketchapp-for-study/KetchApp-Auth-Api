@@ -1,20 +1,22 @@
+use crate::{
+    config::app_config::AppConfig,
+    errors::{ErrorResponse, ServiceError},
+    models::{
+        auth_response_model::AuthResponse, claims::Claims, register::RegisterUser, user::User,
+    },
+    repositories::{establish_connection, users_repo},
+    DbPool,
+};
 use actix_web::{
     cookie::{Cookie, SameSite},
     post, web, HttpResponse,
 };
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use chrono::{Duration, Utc};
-use rand::rngs::OsRng;
-use validator::Validate;
 use diesel::prelude::*;
+use rand::rngs::OsRng;
 use tracing::error;
-use crate::{
-    config::app_config::AppConfig,
-    errors::{ErrorResponse, ServiceError},
-    models::{claims::Claims, register::RegisterUser, user::User, auth_response_model::AuthResponse},
-    repositories::{users_repo, establish_connection},
-    DbPool,
-};
+use validator::Validate;
 
 #[utoipa::path(
         post,
@@ -41,27 +43,48 @@ pub async fn register_handler(
 ) -> Result<HttpResponse, ServiceError> {
     // Validazione input
     if let Err(validation_errors) = body.validate() {
-        return Err(ServiceError::ValidationError(format!("{:?}", validation_errors)));
+        error!(
+            "Validation error for new user {}: {:?}",
+            body.username, validation_errors
+        );
+        return Err(ServiceError::ValidationError(format!(
+            "{:?}",
+            validation_errors
+        )));
     }
 
-    // Verifica esistenza utente PRIMA di qualsiasi altra operazione
-    if users_repo::user_exists_by_username_or_email(&pool, &body.username, &body.email)
-        .map_err(|err| ServiceError::DatabaseError(err))?
-    {
+    if users_repo::user_exists_by_username_or_email(&pool, &body.username, &body.email).map_err(
+        |err| {
+            error!(
+                "Database error checking user existence for {}: {:?}",
+                body.username, err
+            );
+            ServiceError::DatabaseError(err)
+        },
+    )? {
+        error!(
+            "Conflict: Username '{}' or email '{}' already in use.",
+            body.username, body.email
+        );
         return Err(ServiceError::Conflict("Username o email già in uso".into()));
     }
 
-    // Verifica che la chiave privata sia leggibile PRIMA di creare l'utente
     let private_key = std::fs::read("./private_key.pem").map_err(|err| {
+        error!("JWT Key Error: Errore lettura chiave privata: {:?}", err);
         ServiceError::JwtKeyError(format!("Errore lettura chiave privata: {:?}", err))
     })?;
 
-    // Hash della password
     let mut rng = OsRng;
     let salt = SaltString::generate(&mut rng);
     let password_hash = Argon2::default()
         .hash_password(body.password.as_bytes(), &salt)
-        .map_err(|_| ServiceError::ValidationError("Hashing della password fallito".into()))?
+        .map_err(|e| {
+            error!(
+                "Password hashing failed for user {}: {:?}",
+                body.username, e
+            );
+            ServiceError::ValidationError("Hashing della password fallito".into())
+        })?
         .to_string();
 
     let new_user = users_repo::NewUser {
@@ -70,44 +93,62 @@ pub async fn register_handler(
         password: password_hash,
     };
 
-    // Usa una transazione per garantire atomicità
     let (user, token) = web::block({
         let pool = pool.clone();
         let private_key = private_key.clone();
         let app_config = app_config.clone();
-        
+        let new_user = new_user;
+
         move || -> Result<(User, String), ServiceError> {
-            // Ottieni connessione dal pool
-            let mut conn = establish_connection(&pool)
-                .map_err(|e| ServiceError::DatabaseError(e))?;
-            
-            // Esegui tutto in una transazione
+            let mut conn = establish_connection(&pool).map_err(|e| {
+                error!(
+                    "Database connection error in blocking thread for new user {}: {:?}",
+                    new_user.username, e
+                );
+                ServiceError::DatabaseError(e)
+            })?;
+
             conn.transaction::<(User, String), diesel::result::Error, _>(|conn| {
-                // Crea l'utente nel database
-                let user = users_repo::create_user_with_connection(conn, new_user)?;
-                
-                // Crea i claims con l'ID reale dell'utente
+                let user = users_repo::create_user_with_connection(conn, new_user.clone())?;
+
                 let now = Utc::now();
                 let claims = Claims {
                     sub: user.id.to_string(),
-                    exp: (now + Duration::seconds(app_config.jwt_exp_secs as i64)).timestamp() as usize,
+                    exp: (now + Duration::seconds(app_config.jwt_exp_secs as i64)).timestamp()
+                        as usize,
                     iat: now.timestamp() as usize,
                     iss: app_config.jwt_issuer.clone(),
                     aud: app_config.jwt_audience.clone(),
                 };
-                
-                // Genera JWT - se fallisce, la transazione verrà rollback-ata
-                let token = claims.generate_jwt(&private_key)
-                    .map_err(|_| diesel::result::Error::RollbackTransaction)?;
-                
+
+                let token = claims.generate_jwt(&private_key).map_err(|e| {
+                    error!(
+                        "JWT generation failed within transaction for user {}: {:?}",
+                        user.username, e
+                    );
+                    diesel::result::Error::RollbackTransaction
+                })?;
+
                 Ok((user, token))
-            }).map_err(|e| ServiceError::DatabaseError(e))
+            })
+            .map_err(|e| {
+                error!(
+                    "Database transaction failed for user {}: {:?}",
+                    new_user.username, e
+                );
+                ServiceError::DatabaseError(e)
+            })
         }
     })
     .await
-    .map_err(|_| ServiceError::InternalServerError)??;
+    .map_err(|e| {
+        error!(
+            "Blocking operation failed for user {}: {:?}",
+            body.username, e
+        );
+        ServiceError::JwtGenerationError(format!("Errore generazione JWT: {}", e))
+    })??;
 
-    // Se arriviamo qui, tutto è andato bene e l'utente è stato creato con successo
     let cookie = Cookie::build("auth_token", token.clone())
         .path("/")
         .http_only(true)
@@ -115,13 +156,13 @@ pub async fn register_handler(
         .secure(true)
         .finish();
 
-let auth_response = AuthResponse {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    created_at: user.created_at,
-    token,
-};
+    let auth_response = AuthResponse {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        created_at: user.created_at,
+        token,
+    };
 
     Ok(HttpResponse::Ok().cookie(cookie).json(auth_response))
 }

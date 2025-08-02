@@ -1,11 +1,11 @@
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
-use authentication::config::app_config::AppConfig;
-use authentication::config::open_api::ApiDoc;
-use authentication::handlers::route_config;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::PgConnection;
+use ketchapp_auth_api::config::app_config::AppConfig;
+use ketchapp_auth_api::config::open_api::ApiDoc;
+use ketchapp_auth_api::handlers::route_config;
 use std::env;
 use tracing::info;
 use utoipa::OpenApi;
@@ -19,7 +19,10 @@ async fn main() -> Result<(), std::io::Error> {
     let app_config = AppConfig::from_files().expect("Failed to load AppConfig");
 
     // Safely set the environment variable without using unsafe
-    let rust_log = app_config.rust_log.clone().unwrap_or_else(|| "info".to_string());
+    let rust_log = app_config
+        .rust_log
+        .clone()
+        .unwrap_or_else(|| "info".to_string());
     env::set_var("RUST_LOG", &rust_log);
 
     tracing_subscriber::fmt::init();
@@ -43,15 +46,17 @@ async fn main() -> Result<(), std::io::Error> {
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(app_config.clone()))
             .wrap(Logger::default())
-            .wrap(Cors::default()
-                .allow_any_header()
-                .allow_any_method()
-                .allow_any_origin()
-                .supports_credentials()
+            .wrap(
+                Cors::default()
+                    .allow_any_header()
+                    .allow_any_method()
+                    .allow_any_origin()
+                    .supports_credentials(),
             )
             .configure(route_config)
             .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-doc/openapi.json", ApiDoc::openapi()),
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .url("/api-doc/openapi.json", ApiDoc::openapi()),
             )
     })
     .bind((host, port))?

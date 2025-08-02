@@ -293,31 +293,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "authentication"
-version = "0.1.0"
-dependencies = [
- "actix-cors",
- "actix-web",
- "argon2",
- "chrono",
- "config",
- "diesel",
- "dotenvy",
- "jsonwebtoken",
- "r2d2",
- "rand 0.8.5",
- "serde",
- "serde_json",
- "thiserror",
- "tracing",
- "tracing-subscriber",
- "utoipa",
- "utoipa-swagger-ui",
- "uuid",
- "validator",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1144,6 +1119,31 @@ dependencies = [
  "serde",
  "serde_json",
  "simple_asn1",
+]
+
+[[package]]
+name = "ketchapp-auth-api"
+version = "0.1.0"
+dependencies = [
+ "actix-cors",
+ "actix-web",
+ "argon2",
+ "chrono",
+ "config",
+ "diesel",
+ "dotenvy",
+ "jsonwebtoken",
+ "r2d2",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
+ "uuid",
+ "validator",
 ]
 
 [[package]]
