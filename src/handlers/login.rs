@@ -4,7 +4,6 @@ use actix_web::{
 };
 use argon2::{password_hash::PasswordHash, Argon2, PasswordVerifier};
 use chrono::{Duration, Utc};
-use tracing::info;
 use validator::Validate;
 
 use crate::{

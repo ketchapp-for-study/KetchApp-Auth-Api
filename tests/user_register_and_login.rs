@@ -53,7 +53,11 @@ pub async fn login_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::{test, web};
+    use actix_web::{
+        test::{self, TestRequest},
+        web, App,
+    };
+    use ketchapp_auth_api::{config::app_config, handlers::route_config};
 
     #[actix_web::test]
     async fn test_register_handler_success() {
