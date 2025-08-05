@@ -20,7 +20,15 @@ docker compose -f "$COMPOSE_FILE" up -d db
 
 # Wait for Postgres to be ready
 echo "Waiting for Postgres to be ready..."
+start_time=$(date +%s)
+timeout_seconds=30
 until pg_isready -h localhost -p 5432 -U postgres; do
+  current_time=$(date +%s)
+  elapsed_time=$((current_time - start_time))
+  if [ "$elapsed_time" -ge "$timeout_seconds" ]; then
+    echo "Error: Postgres did not become ready within ${timeout_seconds} seconds. Exiting."
+    exit 1
+  fi
   echo "Waiting for Postgres..."
   sleep 1
 done

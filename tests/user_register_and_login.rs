@@ -23,10 +23,8 @@ pub struct LoginUser {
 #[derive(Debug)]
 pub enum ServiceError {
     Unauthorized(String),
-    // Add other variants as needed
 }
 
-// Dummy register handler
 pub async fn register_handler(
     _pool: web::Data<MockDbPool>,
     _config: web::Data<AppConfig>,
@@ -35,7 +33,6 @@ pub async fn register_handler(
     Ok(HttpResponse::Ok().finish())
 }
 
-// Dummy login handler
 pub async fn login_handler(
     _pool: web::Data<MockDbPool>,
     _config: web::Data<AppConfig>,
@@ -48,16 +45,10 @@ pub async fn login_handler(
     }
 }
 
-// --- Tests ---
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::{
-        test::{self, TestRequest},
-        web, App,
-    };
-    use ketchapp_auth_api::{config::app_config, handlers::route_config};
+    use actix_web::web;
 
     #[actix_web::test]
     async fn test_register_handler_success() {
@@ -97,10 +88,9 @@ mod tests {
             password: "wrongpassword".into(),
         };
         let resp = login_handler(pool, config, web::Json(login)).await;
-        assert!(resp.is_err());
-        match resp.err().unwrap() {
-            ServiceError::Unauthorized(_) => {}
-            _ => panic!("Expected Unauthorized error"),
+        if let Err(ServiceError::Unauthorized(_)) = resp {
+        } else {
+            panic!("Expected ServiceError::Unauthorized but got {:?}", resp);
         }
     }
 }

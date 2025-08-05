@@ -11,6 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ketchapp-net
 
   auth-api:
     build: .
@@ -24,6 +26,12 @@ services:
     volumes:
       - ./config.toml:/app/config.toml
       - ./private_key.pem:/app/private_key.pem
+    networks:
+      - ketchapp-net
 
 volumes:
   postgres_data:
+
+networks:
+  ketchapp-net:
+    external: true
